@@ -201,18 +201,16 @@ for idx = 1:length(combos)
         iscombvalid = true;
 
         while combidx <= 3
-            if gemcomb(combidx) > 0
-                foundidx = find((slots .* [1;2;3]) >= gemcomb(combidx));
-                if isempty(foundidx) || max(slots(foundidx)) <= 0
-                    iscombvalid = false;
-                    break;
+            if(gemcomb(combidx) > 0)
+                foundidx = findminslot(slots, gemcomb(combidx));
+                if ~isempty(foundidx) && gemcomb(combidx) > 0
+                    % Have a slot available for this gem level; now use it to
+                    % remove it
+                    gemcomb(combidx) = gemcomb(combidx) - foundidx;
+                    slots(foundidx) = slots(foundidx) - 1;
                 end
-                [mval, midx] = min(slots(foundidx));
-                slots(midx) = slots(midx) - 1;
-                gemcomb(combidx) = gemcomb(combidx) - mval;
             end
-          
-                combidx = combidx + 1;
+            combidx = combidx + 1;
         end
 
         if iscombvalid
@@ -251,6 +249,16 @@ for idx = 1:length(combos)
 
     end
 end
+end
+
+function retval = findminslot(v, value)
+    for idx = value:length(v)
+        if(idx >= value && v(idx) > 0)
+            retval = idx;
+            return;
+        end
+    end
+    retval = [];
 end
 
 function [result] = UnitStep(x)
