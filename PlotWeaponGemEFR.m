@@ -187,11 +187,35 @@ end
 for idx = 1:length(combos)
     gemcombination = combos(idx,:);
     combsum = sum(gemcombination);
-    if combsum <= sum(weapon_gem_slots .* [1;2;3])
+    weapslotsum = sum(weapon_gem_slots .* [1;2;3]);
+    if combsum <= weapslotsum && weapslotsum <= 9
 
-        if sum(gemcombination == 3) <= weapon_gem_slots(3) && ...
-                sum(gemcombination == 2) <= weapon_gem_slots(2) + weapon_gem_slots(3) && ...
-                sum(gemcombination == 1) <= sum(weapon_gem_slots)
+        gem3s = sum(gemcombination == 3);
+        gem2s = sum(gemcombination == 2);
+        gem1s = sum(gemcombination == 1);
+
+        gemcomb = gemcombination;
+        slots = weapon_gem_slots;
+        combidx = 1;
+        slotidx = 1;
+        iscombvalid = true;
+
+        while combidx <= 3
+            if gemcomb(combidx) > 0
+                foundidx = find((slots .* [1;2;3]) >= gemcomb(combidx));
+                if isempty(foundidx) || max(slots(foundidx)) <= 0
+                    iscombvalid = false;
+                    break;
+                end
+                [mval, midx] = min(slots(foundidx));
+                slots(midx) = slots(midx) - 1;
+                gemcomb(combidx) = gemcomb(combidx) - mval;
+            end
+          
+                combidx = combidx + 1;
+        end
+
+        if iscombvalid
             % A gem combination which meets the above condition could
             % fit in the weapon's available gem slots
 
@@ -215,6 +239,10 @@ for idx = 1:length(combos)
             end
 
             if sum(skcopy > 0) == 0
+%                 fprintf("Valid: skills %d %d %d for combo %d %d %d\n", ...
+%                     skills(1), skills(2), skills(3), ...
+%                     gemcombination(1), gemcombination(2), gemcombination(3));
+%                     
                 valid = true;
                 return;
             end
