@@ -197,7 +197,6 @@ for idx = 1:length(combos)
 
         gemcomb = sort(gemcomb);
         iscombvalid = false;
-        sum(gemcomb == 3)
 
         while combidx <= 3
             if(gemcomb(combidx) > 0)
