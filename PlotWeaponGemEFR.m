@@ -190,15 +190,11 @@ for idx = 1:length(combos)
     weapslotsum = sum(weapon_gem_slots .* [1;2;3]);
     if combsum <= weapslotsum && weapslotsum <= 9
 
-        gem3s = sum(gemcombination == 3);
-        gem2s = sum(gemcombination == 2);
-        gem1s = sum(gemcombination == 1);
-
         gemcomb = gemcombination;
         slots = weapon_gem_slots;
         combidx = 1;
         slotidx = 1;
-        iscombvalid = true;
+        iscombvalid = false;
 
         while combidx <= 3
             if(gemcomb(combidx) > 0)
@@ -212,6 +208,8 @@ for idx = 1:length(combos)
             end
             combidx = combidx + 1;
         end
+
+        iscombvalid = sum(gemcomb) <= 0;
 
         if iscombvalid
             % A gem combination which meets the above condition could
