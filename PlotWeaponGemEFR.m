@@ -15,7 +15,7 @@ end
 % v is [Attack Boost Level; Expert Level; Crit Boost Level]
 EVdWrapper = @(v) EVd(WeaponStats([baseattack;baseaffinity;weapon_slots;v]));
 
-nFrames = 5;
+nFrames = 6;
 
 vec_atk = 0:1:5;
 vec_exp = 0:1:5;
