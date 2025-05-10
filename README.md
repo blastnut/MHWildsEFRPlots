@@ -12,7 +12,7 @@ The result should look something like: (after you expand the window)
 
 PlotEFR.mlx is the live script I used to make the EFR heatmap animations.
 
-![Ex1](images/efr_a_v_r.png)
-![Ex2](images/efr_c_v_a.png)
-![Ex3](images/efr_c_v_r.png)
+![Ex1](images/efr_a_v_r.gif)
+![Ex2](images/efr_c_v_a.gif)
+![Ex3](images/efr_c_v_r.gif)
 
