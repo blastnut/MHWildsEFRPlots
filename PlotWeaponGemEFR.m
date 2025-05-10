@@ -87,7 +87,7 @@ for idx = 1:nFrames
             value = EFR(row, col);
 
             if value > 0
-                disptxt = num2str(value);
+                disptxt = sprintf('%.2f', value);
             else
                 disptxt = 'X';
             end
