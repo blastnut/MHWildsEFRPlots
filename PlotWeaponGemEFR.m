@@ -194,12 +194,15 @@ for idx = 1:length(combos)
         slots = weapon_gem_slots;
         combidx = 1;
         slotidx = 1;
+
+        gemcomb = sort(gemcomb);
         iscombvalid = false;
+        sum(gemcomb == 3)
 
         while combidx <= 3
             if(gemcomb(combidx) > 0)
                 foundidx = findminslot(slots, gemcomb(combidx));
-                if ~isempty(foundidx) && gemcomb(combidx) > 0
+                if ~isempty(foundidx)
                     % Have a slot available for this gem level; now use it to
                     % remove it
                     gemcomb(combidx) = gemcomb(combidx) - foundidx;
@@ -209,7 +212,7 @@ for idx = 1:length(combos)
             combidx = combidx + 1;
         end
 
-        iscombvalid = sum(gemcomb) <= 0;
+        iscombvalid = sum(gemcomb > 0) <= 0;
 
         if iscombvalid
             % A gem combination which meets the above condition could
