@@ -84,11 +84,20 @@ methods
         end
 
         function OnUpdateButtonPushed(src, event)
-            for idx = 1:obj.m_nFrames
-                cla(obj.m_axes{idx}, 'reset');
+            weapon_slots = [...
+            obj.m_editboxes{3}.Value;...
+            obj.m_editboxes{4}.Value;...
+            obj.m_editboxes{5}.Value
+                ];
+            if sum(weapon_slots) > 3
+                msgbox("Sum of slots must be 3 or less.", "Note");
+            else
+                for idx = 1:obj.m_nFrames
+                    cla(obj.m_axes{idx}, 'reset');
+                end
+                drawnow;
+                obj.MakePlots();
             end
-
-            obj.MakePlots();
         end
 
     end
