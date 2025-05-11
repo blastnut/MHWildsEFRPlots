@@ -1,11 +1,12 @@
 PlotWeaponGemEFR.m is probably what you are interested in. Once added to your
 MATLAB path, you can call it using, for example:
 
-PlotWeaponGemEFR(220, 10, [0;1;2]) 
+PlotWeaponGemEFR;
 
-The above is for 220 base attack (whether on weapon or from armor skills), 10% Affinity
-(whether on weapon or from armor skills), 0 level 1 deco slots, 1 level 1
-deco slot, 2 level 3 deco slots.
+Or by simply opening the script and clicking Run.
+
+The user interface has 5 edit boxes for you to input your weapon stats, and you
+can click Update to redraw the plots for them.
 
 The result should look something like: (after you expand the window)
 ![EFRGemPlotExample](images/EFRscriptExample2.png)
