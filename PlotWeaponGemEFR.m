@@ -128,7 +128,7 @@ methods
         % for convenience
         
         % v is [Attack Boost Level; Expert Level; Crit Boost Level]
-        EVdWrapper = @(v) EVd(WeaponStats([baseattack;baseaffinity;weapon_slots;v]));
+        EVdWrapper = @(v) EVd(obj.WeaponStats([baseattack;baseaffinity;weapon_slots;v]));
         
     
         
@@ -220,7 +220,7 @@ methods
     
     end
     
-    function [stats] = WeaponStats(v)
+    function [stats] = WeaponStats(obj, v)
         baseattack = v(1);
         baseaffinity = v(2);
         basecrit = 25;
@@ -230,7 +230,7 @@ methods
         explevel = v(7);
         critlevel = v(8);
         
-        validmultiple = IsSkillComboPossible(nSlots, v(6:8));
+        validmultiple = obj.IsSkillComboPossible(nSlots, v(6:8));
         
         atkboost = AttackBoost(attacklevel, baseattack);
         affinityboost = AffinityBoost(explevel);
@@ -243,7 +243,7 @@ methods
     
     end
 
-    function [bValid] = IsSkillComboPossible(weapon_gem_slots, skills)
+    function [bValid] = IsSkillComboPossible(obj, weapon_gem_slots, skills)
         % weapon_slots = [lvl1 lvl2 lvl3]
         % skills = [Attack Lvl, Expert Lvl, Crit Boost Lvl];
         
@@ -283,7 +283,7 @@ methods
         
                 while combidx <= 3
                     if(gemcomb(combidx) > 0)
-                        foundidx = findminslot(slots, gemcomb(combidx));
+                        foundidx = obj.findminslot(slots, gemcomb(combidx));
                         if ~isempty(foundidx)
                             % Have a slot available for this gem level; now use it to
                             % remove it
@@ -330,7 +330,7 @@ methods
         end
     end
     
-    function retval = findminslot(v, value)
+    function retval = findminslot(obj, v, value)
         for idx = value:length(v)
             if(idx >= value && v(idx) > 0)
                 retval = idx;
