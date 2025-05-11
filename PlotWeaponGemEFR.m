@@ -26,11 +26,6 @@ classdef PlotWeaponGemEFR  < handle
 methods
 
     function obj = PlotWeaponGemEFR()
-        % Argument examples:
-        % baseattack = 200;
-        % baseaffinity = 15;
-        % weapon_slots = [1;1;1]; % 1 level 1, 1 level 2, 1 level 3 deco slots
-        
         % Only use local versions of user functions so I am reminded that
         % this script should not require more than one file
         warning('off', 'MATLAB:dispatcher:nameConflict');
@@ -92,6 +87,7 @@ methods
             for idx = 1:obj.m_nFrames
                 cla(obj.m_axes{idx}, 'reset');
             end
+
             obj.MakePlots();
         end
 
@@ -107,7 +103,7 @@ methods
             obj.m_editboxes{5}.Value
         ];
         
-        sprintf([...
+        obj.m_rootfigure.Name = sprintf([...
             'EFR for weapon w/ Base Attack: %.2f, Base Affinity:...' ...
             ' %.2f%%; Deco Slots: %d Lvl 1, %d Lvl 2, %d Lvl 3'], ...
             baseattack, baseaffinity, weapon_slots(1), weapon_slots(2), ...
@@ -121,7 +117,7 @@ methods
         
         efrlb = baseattack - 0.1*baseattack;
         efrub = 1.2*baseattack + 5;
-        vec_colorbar_domain = efrlb:5:efrub;
+
         vec_colorbar_bounds = [efrlb efrub];
         
         [nEXP, nCRIT] = meshgrid(vec_exp, vec_crit);
@@ -166,13 +162,7 @@ methods
             set(hAxes, 'YDir', 'normal');
             clim(hAxes, vec_colorbar_bounds);
             colormap(hAxes, efr_col_palette);
-        
-%             hColBar = colorbar(hAxes);
-%             obj.m_colorbars(idx) = hColBar;
-%             hColBar.Ticks = vec_colorbar_domain;
-            
-        
-        
+                
             xlabel(hAxes, 'Expert Level');
             ylabel(hAxes, 'Critical Boost Level');
             xticks(hAxes, 0:1:5);
@@ -231,26 +221,25 @@ methods
     end
     
     function [stats] = WeaponStats(v)
-    % #Atk + #Expert + #Crit <= 3
-    baseattack = v(1);
-    baseaffinity = v(2);
-    basecrit = 25;
-    nSlots = v(3:5);
-    
-    attacklevel = v(6);
-    explevel = v(7);
-    critlevel = v(8);
-    
-    validmultiple = IsSkillComboPossible(nSlots, v(6:8));
-    
-    atkboost = AttackBoost(attacklevel, baseattack);
-    affinityboost = AffinityBoost(explevel);
-    critboost = CritBoost(critlevel);
-    
-    stats = validmultiple * ...
-        [atkboost + baseattack; ...
-        min(100,baseaffinity + affinityboost);...
-        critboost + basecrit];
+        baseattack = v(1);
+        baseaffinity = v(2);
+        basecrit = 25;
+        nSlots = v(3:5);
+        
+        attacklevel = v(6);
+        explevel = v(7);
+        critlevel = v(8);
+        
+        validmultiple = IsSkillComboPossible(nSlots, v(6:8));
+        
+        atkboost = AttackBoost(attacklevel, baseattack);
+        affinityboost = AffinityBoost(explevel);
+        critboost = CritBoost(critlevel);
+        
+        stats = validmultiple * ...
+            [atkboost + baseattack; ...
+            min(100,baseaffinity + affinityboost);...
+            critboost + basecrit];
     
     end
 
@@ -269,7 +258,7 @@ methods
         persistent A B C combos dim
         
         if isempty(dim)
-            dim = [3;3;3];
+            dim = [3;3;3]; %Because of how we do this, only 3 total gems are ever allowed
             [A, B, C] = ndgrid(0:dim(1), 0:dim(2), 0:dim(3));
             combos = [A(:), B(:), C(:)];
         end
