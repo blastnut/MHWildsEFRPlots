@@ -21,11 +21,11 @@ classdef Weapon
             buffatkboost = v(4); % Boosts off the weapon come after gems
             buffaffboost = v(5);
             
-            validmultiple = obj.IsSkillComboPossible(obj.m_nSlots, v(1:3));
+            validmultiple = Weapon.IsSkillComboPossible(obj.m_nSlots, v(1:3));
             
-            atkboost = AttackBoost(attacklevel, obj.m_baseattack);
-            affinityboost = AffinityBoost(explevel);
-            critboost = CritBoost(critlevel);
+            atkboost = Weapon.AttackBoost(attacklevel, obj.m_baseattack);
+            affinityboost = Weapon.AffinityBoost(explevel);
+            critboost = Weapon.CritBoost(critlevel);
             
             stats = validmultiple * ...
                 [atkboost + obj.m_baseattack + buffatkboost; ...
@@ -34,7 +34,26 @@ classdef Weapon
         
         end
     
-        function [bValid] = IsSkillComboPossible(obj, weapon_gem_slots, skills)
+    end %%% End non-static method definitions %%%
+
+    methods(Static)
+         function [OutgoingRaw] = EVd(v)
+            % Expected Value of Outgoing Raw Damage, before multiplication by 
+            % MV, HZ, and Sharpness
+            
+            % v(1) = True Raw Attack of weapon, including bonus
+            % v(2) = Affinity %, including bonus
+            % v(3) = Critical Damage Bonus, including base +25%
+            
+            if v(2) >= 0
+                OutgoingRaw = v(1) + v(1)*(v(2)/100)*(v(3)/100);
+            else
+                OutgoingRaw = v(1) + v(1)*(v(2)/100)*(25/100);
+            end
+        
+        end
+
+        function [bValid] = IsSkillComboPossible(weapon_gem_slots, skills)
             % weapon_slots = [lvl1 lvl2 lvl3]
             % skills = [Attack Lvl, Expert Lvl, Crit Boost Lvl];
             
@@ -74,7 +93,7 @@ classdef Weapon
             
                     while combidx <= 3
                         if(gemcomb(combidx) > 0)
-                            foundidx = obj.findminslot(slots, gemcomb(combidx));
+                            foundidx = Weapon.findminslot(slots, gemcomb(combidx));
                             if ~isempty(foundidx)
                                 % Have a slot available for this gem level; now use it to
                                 % remove it
@@ -121,7 +140,7 @@ classdef Weapon
             end
         end
         
-        function retval = findminslot(obj, v, value)
+        function retval = findminslot(v, value)
             for idx = value:length(v)
                 if(idx >= value && v(idx) > 0)
                     retval = idx;
@@ -129,14 +148,7 @@ classdef Weapon
                 end
             end
             retval = [];
-        end
-        
-        function [result] = UnitStep(x)
-            % Matlab defines heaviside(0) to be 0.5, which is a perfectly sensible
-            % perversion. It can be changed globally but I'd rather not screw around
-            % with a user's settings
-            result = (x >= 0);
-        end
+        end   
         
         function [boost] = AttackBoost(lvl, attack)
             nLvl = floor(lvl);
