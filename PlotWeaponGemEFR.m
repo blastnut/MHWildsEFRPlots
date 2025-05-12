@@ -30,7 +30,11 @@ methods
         % this script should not require more than one file
         warning('off', 'MATLAB:dispatcher:nameConflict');
         rmpath(genpath('path/to/other/functions'));
-
+        
+        % hunt duration
+        %[attack bonus, affinity bonus, duty cycle, start time;
+        % attack bonus2, affinity bonus2, duty cycle2, start time2]
+        
         obj.InitUI();
         obj.MakePlots();
     end
@@ -136,8 +140,10 @@ methods
         % Bind base attack, affinity, and weapon slots to the function
         % for convenience
         
+        weapon = Weapon(baseattack, baseaffinity, weapon_slots);
+
         % v is [Attack Boost Level; Expert Level; Crit Boost Level]
-        EVdWrapper = @(v) EVd(obj.WeaponStats([baseattack;baseaffinity;weapon_slots;v]));
+        EVdWrapper = @(v) EVd(weapon.WeaponStats([v;0;0]));
         
     
         
@@ -229,160 +235,9 @@ methods
     
     end
     
-    function [stats] = WeaponStats(obj, v)
-        baseattack = v(1);
-        baseaffinity = v(2);
-        basecrit = 25;
-        nSlots = v(3:5);
-        
-        attacklevel = v(6);
-        explevel = v(7);
-        critlevel = v(8);
-        
-        validmultiple = obj.IsSkillComboPossible(nSlots, v(6:8));
-        
-        atkboost = AttackBoost(attacklevel, baseattack);
-        affinityboost = AffinityBoost(explevel);
-        critboost = CritBoost(critlevel);
-        
-        stats = validmultiple * ...
-            [atkboost + baseattack; ...
-            min(100,baseaffinity + affinityboost);...
-            critboost + basecrit];
-    
-    end
-
-    function [bValid] = IsSkillComboPossible(obj, weapon_gem_slots, skills)
-        % weapon_slots = [lvl1 lvl2 lvl3]
-        % skills = [Attack Lvl, Expert Lvl, Crit Boost Lvl];
-        
-        % Brute force. Short explanation for why this function is even necessary:
-        % By using skill levels rather than gems, it reduces the dimension from 9 to 3
-        % which makes the information easier to plot; however, this complicates
-        % detecting whether or not a combination of skills is possible in a
-        % particular slot configuration
-        
-        bValid = false;
-        
-        persistent A B C combos dim
-        
-        if isempty(dim)
-            dim = [3;3;3]; %Because of how we do this, only 3 total gems are ever allowed
-            [A, B, C] = ndgrid(0:dim(1), 0:dim(2), 0:dim(3));
-            combos = [A(:), B(:), C(:)];
-        end
-        
-        for idx = 1:length(combos)
-            % Copy the weapon gem combination to subtract from
-            % By subtracting the available weapon slot levels, we
-            % can figure out if the weapon has enough to fit
-
-            %  This can be replaced later by something more efficient
-
-            gemcombination = combos(idx,:);
-            combsum = sum(gemcombination);
-            weapslotsum = sum(weapon_gem_slots .* [1;2;3]);
-            if combsum <= weapslotsum
-        
-                gemcomb = gemcombination;
-                slots = weapon_gem_slots;
-                combidx = 1;
-        
-                gemcomb = sort(gemcomb);
-        
-                while combidx <= 3
-                    if(gemcomb(combidx) > 0)
-                        foundidx = obj.findminslot(slots, gemcomb(combidx));
-                        if ~isempty(foundidx)
-                            % Have a slot available for this gem level; now use it to
-                            % remove it
-                            gemcomb(combidx) = gemcomb(combidx) - foundidx;
-                            slots(foundidx) = slots(foundidx) - 1;
-                        end
-                    end
-                    combidx = combidx + 1;
-                end
-        
-                bIsCombValid = sum(gemcomb > 0) <= 0;
-        
-                if bIsCombValid
-                    % A gem combination which meets the above condition could
-                    % fit in the weapon's available gem slots
-        
-                    % We need to check if the combination can meet or
-                    % exceed the skill levels requested while requiring
-                    % that each gem of the combination only be used for one
-                    % skill
-                    skcopy = skills;
-                    skidx = 1;
-                    combidx = 1;
-                    while skidx <= 3 && combidx <= 3
-                        if skcopy(skidx) == 0
-                            skidx = skidx + 1;
-                            continue;
-                        end
-                        skcopy(skidx) = skcopy(skidx) - gemcombination(combidx);
-                        combidx = combidx + 1;
-                        if(skcopy(skidx) <= 0)
-                            skidx = skidx + 1;
-                        end
-                    end
-        
-                    if sum(skcopy > 0) == 0
-                        bValid = true;
-                        return;
-                    end
-        
-                end
-        
-            end
-        end
-    end
-    
-    function retval = findminslot(obj, v, value)
-        for idx = value:length(v)
-            if(idx >= value && v(idx) > 0)
-                retval = idx;
-                return;
-            end
-        end
-        retval = [];
-    end
-    
-    function [result] = UnitStep(x)
-    % Matlab defines heaviside(0) to be 0.5, which is a perfectly sensible
-    % perversion. It can be changed globally but I'd rather not screw around
-    % with a user's settings
-    result = (x >= 0);
-    end
-    
-    function [boost] = AttackBoost(lvl, attack)
-    nLvl = floor(lvl);
-    atk = floor(attack);
-    boost = ...
-        (9+  0.04*atk)*UnitStep(nLvl - 5) + ...
-        (8 + 0.02*atk)*(UnitStep(nLvl - 4) - UnitStep(nLvl - 5)) + ...
-        7*(UnitStep(nLvl - 3) - UnitStep(nLvl - 4)) + ...
-        5*(UnitStep(nLvl - 2) - UnitStep(nLvl - 3)) + ...
-        3*(UnitStep(nLvl - 1) - UnitStep(nLvl - 2));
-    end
-    
-    function [critboost] = CritBoost(lvl)
-    nLvl = floor(lvl);
-    critboost = ((nLvl) * 3) * (UnitStep(nLvl - 1) - UnitStep(nLvl - 6)) ...
-        + 15*UnitStep(nLvl - 6);
-    end
-    
-    function [affboost] = AffinityBoost(lvl)
-    nLvl = floor(lvl);
-    affboost = (nLvl * 4) * (UnitStep(nLvl - 1) - UnitStep(nLvl - 6)) ...
-        + 20*UnitStep(nLvl - 6);
-    end
-
+   
 end %%% End Methods section %%%
 
 
 end %%% End class definition %%%
-
-
 
