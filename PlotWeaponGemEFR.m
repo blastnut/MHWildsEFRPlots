@@ -7,12 +7,18 @@ classdef PlotWeaponGemEFR  < handle
 
         m_updatebutton; % Updates plots on press
         m_editboxes = cell(1, 5); %Edit boxes to hold plot arguments
+        m_editbuffboxes = cell(1, 4);
+
+        m_bufflabels = cell(1, 4);
+        m_bufflabeltext = ["Max Might", "Latent Power", "Antivirus", "Black Eclipse"];
 
         m_labels = cell(1, 5);
         m_labeltext = ["Base Attack"; "Base Affinity"; ...
                         "Lvl 1 Slots"; "Lvl 2 Slots"; ...
                         "Lvl 3 Slots"];
 
+        m_buffranges = [0 3; 0 5; 0 3; 0 2];
+        m_buffdefaults = [0;0;0;0];
         m_editranges = [0 300;-100 100;0 3;0 3;0 3]; % Valid bounds for edit boxes
         m_editdefaults = [200 15 0 0 3]; % Default values for edit boxes
 
@@ -46,7 +52,7 @@ methods
         obj.m_toplayout.RowHeight = {'fit','9x'};
         obj.m_toplayout.ColumnWidth = {'2x','1x'};
         
-        obj.m_editpanel = uigridlayout(obj.m_toplayout, [2 5]);
+        obj.m_editpanel = uigridlayout(obj.m_toplayout, [4 5]);
         obj.m_editpanel.Layout.Row = 1;
         obj.m_editpanel.Layout.Column = 1;
         obj.m_editpanel.Padding = [1, 1, 1, 1];
@@ -71,6 +77,23 @@ methods
             obj.m_editboxes{idx}.Value = obj.m_editdefaults(idx);
         end
         
+        for idx=1:4
+            hLabel = uilabel(obj.m_editpanel);
+            obj.m_bufflabels{idx} = hLabel;
+            hLabel.Layout.Row = 3;
+            hLabel.Layout.Column = idx;
+            hLabel.Text = obj.m_bufflabeltext(idx);
+            hLabel.HorizontalAlignment = 'center';
+
+
+            obj.m_editbuffboxes{idx} = uieditfield(obj.m_editpanel, "Numeric");
+            obj.m_editbuffboxes{idx}.Layout.Row = 4;
+            obj.m_editbuffboxes{idx}.Layout.Column = idx;
+            obj.m_editbuffboxes{idx}.Limits = obj.m_buffranges(idx,:);
+            obj.m_editbuffboxes{idx}.Value = obj.m_buffdefaults(idx);
+            
+        end
+
         obj.m_plotlayout = uigridlayout(obj.m_toplayout, [2 3]);
         obj.m_plotlayout.Layout.Row = 2;
         obj.m_plotlayout.Layout.Column = [1,2];
@@ -141,6 +164,7 @@ methods
         % for convenience
         
         weapon = Weapon(baseattack, baseaffinity, weapon_slots);
+        profile = HuntProfile;
 
         % v is [Attack Boost Level; Expert Level; Crit Boost Level]
         EVdWrapper = @(v) Weapon.EVd(weapon.WeaponStats([v;0;0]));
@@ -150,13 +174,23 @@ methods
         maxefr = 0;
         minefr = EVdWrapper([0; 0; 0]);
 
-        nFrames = 6;
+        buffoptions = [obj.m_editbuffboxes{1}.Value, ...
+            obj.m_editbuffboxes{2}.Value, ...
+            obj.m_editbuffboxes{3}.Value, ...
+            obj.m_editbuffboxes{4}.Value];
 
-        for idx = 1:nFrames
+        for idx = 1:obj.m_nFrames
         
             % Bind the EVd function to this frame's attack skill level
+%             EFR = arrayfun(@(nExp, nCrit) ...
+%                 EVdWrapper([vec_atk(idx); nExp; nCrit]), nEXP, nCRIT);
+
+            
             EFR = arrayfun(@(nExp, nCrit) ...
-                EVdWrapper([vec_atk(idx); nExp; nCrit]), nEXP, nCRIT);
+                profile.ComputeAverageEFRforWeapon(...
+                [vec_atk(idx); nExp; nCrit], weapon, buffoptions), ...
+                nEXP, nCRIT);
+                
 
             thismaxefr = max(EFR(:));
             thisminefr = min(EFR(:));
@@ -206,7 +240,7 @@ methods
         end
         
         % Update colorbar thresholds based on the min/max values found
-        for idx = 1:nFrames
+        for idx = 1:obj.m_nFrames
             clim(obj.m_axes{idx}, [minefr maxefr + 5]);
             hColorBar = colorbar(obj.m_axes{idx});
             hColorBar.Ticks = minefr:5:maxefr + 5;

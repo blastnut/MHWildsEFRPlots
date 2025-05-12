@@ -1,4 +1,4 @@
-classdef Weapon
+classdef Weapon < handle
     properties
         m_baseattack;
         m_baseaffinity;
@@ -24,12 +24,13 @@ classdef Weapon
             validmultiple = Weapon.IsSkillComboPossible(obj.m_nSlots, v(1:3));
             
             atkboost = Weapon.AttackBoost(attacklevel, obj.m_baseattack);
-            affinityboost = Weapon.AffinityBoost(explevel);
+            expaffinityboost = Weapon.AffinityBoost(explevel);
             critboost = Weapon.CritBoost(critlevel);
             
+            % Return Attack, Affinity, Critial Damage for EFR calculation
             stats = validmultiple * ...
                 [atkboost + obj.m_baseattack + buffatkboost; ...
-                min(100, obj.m_baseaffinity + affinityboost + buffaffboost);...
+                min(100, obj.m_baseaffinity + expaffinityboost + buffaffboost);...
                 critboost + obj.m_basecrit];
         
         end
